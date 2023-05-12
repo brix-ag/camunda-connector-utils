@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>ch.brix.camunda.connector</groupId>
-  <artifactId>template-generator</artifactId>
+  <artifactId>connector-utils</artifactId>
   <version>1.0.0</version>
   <packaging>jar</packaging>
 
