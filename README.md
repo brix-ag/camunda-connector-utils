@@ -56,7 +56,6 @@ public class Request {
             label = "Action",
             groupId = "action",
             notEmpty = true,
-            type = TYPE.DROPDOWN,
             choiceValues = {"login", "logout"},
             choiceNames = {"Log in", "Log out"},
             value = "login"
