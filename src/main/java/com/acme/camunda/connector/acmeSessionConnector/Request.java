@@ -3,7 +3,9 @@ package com.acme.camunda.connector.acmeSessionConnector;
 import ch.brix.camunda.connector.util.templateGenerator.PropertyDefinition;
 import ch.brix.camunda.connector.util.templateGenerator.TemplateDefinition;
 import ch.brix.camunda.connector.util.templateGenerator.schema.FEEL;
+import lombok.Data;
 
+@Data
 @TemplateDefinition(
         name = "ACME Session Connector",
         id = "com.acme.camunda.connectors.acmeEventConnector:1",

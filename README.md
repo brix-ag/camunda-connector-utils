@@ -42,6 +42,7 @@ A very simple connector that lets you log in or log out. The ACME Session Connec
 ## Request Class
 
 ```java
+@Data 
 @TemplateDefinition(
         name = "ACME Session Connector",
         id = "com.acme.camunda.connectors.acmeEventConnector:1",
