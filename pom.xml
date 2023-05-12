@@ -1,0 +1,62 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>ch.brix.camunda.connector</groupId>
+  <artifactId>template-generator</artifactId>
+  <version>1.0.0</version>
+  <packaging>jar</packaging>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <version.springBoot>3.0.2</version.springBoot>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <version>2.10.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>1.18.24</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <id>generate-template</id>
+            <!-- Phase in which the template is generated -->
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>java</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <mainClass>ch.brix.camunda.connector.util.templateGenerator.TemplateGenerator</mainClass>
+          <arguments>
+            <!-- Request class -->
+            <argument>com.acme.camunda.connector.acmeSessionConnector.Request</argument>
+            <!-- Template location (relative if possible) -->
+            <argument>element-templates/acme-session-connector.json</argument>
+            <!-- PostProcessor class (optional) -->
+            <!--argument>com.acme.camunda.connector.acmeSessionConnector.PostProcessor</argument-->
+          </arguments>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
