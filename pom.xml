@@ -7,6 +7,10 @@
   <version>1.0.0</version>
   <packaging>jar</packaging>
 
+  <name>Camunda Connector Utils</name>
+  <description>Currently contains the template generator and utils for deserialization of delimited values.</description>
+  <url>https://github.com/brix-ag/camunda-connector-utils</url>
+
   <licenses>
     <license>
       <name>Apache License, Version 2.0</name>
