@@ -31,7 +31,7 @@ public @interface TemplateDefinition {
      */
     String description() default "";
     /**
-     * @return version >= 0, or < 0 to omit that field
+     * @return version &gt;= 0, or &lt; 0 to omit that field
      */
     int version() default -1;
 
