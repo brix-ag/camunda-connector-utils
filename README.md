@@ -267,6 +267,18 @@ Input variables (to be copied in @OutboundConnector):
 
 # Maven Integration
 
+Releases can be found on [maven central](https://central.sonatype.com/artifact/ch.brix.camunda.connector/connector-utils).
+
+```xml
+<dependency>
+  <groupId>ch.brix.camunda.connector</groupId>
+  <artifactId>connector-utils</artifactId>
+  <version>1.0.0</version>
+</dependency>
+```
+
+## Automated template generation
+
 Relevant settings are marked with comments below.
 
 ```xml
