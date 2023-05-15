@@ -63,7 +63,6 @@ public class Request {
     )
     private String action;
 
-
     @PropertyDefinition(
             label = "Username",
             groupId = "data",
@@ -75,11 +74,13 @@ public class Request {
 
     @PropertyDefinition(
             label = "Password",
+            description = DefaultTexts.SECRETS_SUPPORTED,
             groupId = "data",
             notEmpty = true,
             conditionPropertyId = "action",
             conditionEquals = "login"
     )
+    //@Secret (dependency missing here, but all fields that support secrets have to be marked with this annotation)
     private String password;
 
     @PropertyDefinition(
@@ -187,6 +188,7 @@ public class Request {
     {
       "id": "password",
       "label": "Password",
+      "description": "\u003ca href\u003d\"https://docs.camunda.io/docs/components/connectors/use-connectors/#using-secrets\" target\u003d\"_blank\"\u003eSecrets\u003c/a\u003e supported.",
       "group": "data",
       "type": "String",
       "feel": "optional",

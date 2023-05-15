@@ -15,12 +15,18 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface PropertyDefinition {
+
+    /**
+     * Constant to take the value from the field name
+     */
+    String FIELD = "<field>";
+
     /**
      * The id is required for conditions. The field name is taken as default,
      * so this should work automatically and doesn't have to be set manually.
-     * @return an id, empty string to omit the id or &lt;field&g; to take the field's name (default)
+     * @return an id, empty string to omit the id or PropertyDefinition.FIELD to take the field's name (default)
      */
-    String id() default "<field>";
+    String id() default FIELD;
     /**
      * @return Human-readable label for the property, e.g. "Username"
      */
@@ -47,9 +53,9 @@ public @interface PropertyDefinition {
      */
     BINDING_TYPE bindingType() default BINDING_TYPE.ZEEBE_INPUT;
     /**
-     * @return A binding name, empty string to omit the value or &lt;field&gt; to take the field's name (default)
+     * @return A binding name, empty string to omit the value or PropertyDefinition.FIELD to take the field's name (default)
      */
-    String bindingName() default "<field>";
+    String bindingName() default FIELD;
     String bindingKey() default "";
     boolean notEmpty() default false;
     int maxLength() default -1;

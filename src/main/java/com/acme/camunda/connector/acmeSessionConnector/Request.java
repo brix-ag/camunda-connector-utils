@@ -1,5 +1,6 @@
 package com.acme.camunda.connector.acmeSessionConnector;
 
+import ch.brix.camunda.connector.util.templateGenerator.DefaultTexts;
 import ch.brix.camunda.connector.util.templateGenerator.PropertyDefinition;
 import ch.brix.camunda.connector.util.templateGenerator.TemplateDefinition;
 import ch.brix.camunda.connector.util.templateGenerator.schema.FEEL;
@@ -37,11 +38,13 @@ public class Request {
 
     @PropertyDefinition(
             label = "Password",
+            description = DefaultTexts.SECRETS_SUPPORTED,
             groupId = "data",
             notEmpty = true,
             conditionPropertyId = "action",
             conditionEquals = "login"
     )
+    //@Secret (dependency missing here, but all fields that support secrets have to be marked with this annotation)
     private String password;
 
     @PropertyDefinition(

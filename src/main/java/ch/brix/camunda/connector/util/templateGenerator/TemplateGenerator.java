@@ -100,7 +100,7 @@ public class TemplateGenerator {
 		if (templateDefinition.addDefaultOutputMapping()) {
 			properties.add(Property.builder()
 					.label("Result Variable")
-					.description("Name of the variable to store the response in.")
+					.description(DefaultTexts.RESULT_VARIABLE)
 					.groupId(templateDefinition.groupIds().length > 0 ? "output" : null)
 					.type(TYPE.STRING)
 					.binding(Binding.builder()
@@ -110,7 +110,7 @@ public class TemplateGenerator {
 					.build());
 			properties.add(Property.builder()
 					.label("Result Expression")
-					.description("Expression to handle the result. Details in the <a href=\"https://docs.camunda.io/docs/components/connectors/use-connectors/\" target=\"_blank\">documentation</a>.")
+					.description(DefaultTexts.RESULT_EXPRESSION)
 					.groupId(templateDefinition.groupIds().length > 0 ? "output" : null)
 					.type(TYPE.TEXT)
 					.feel(FEEL.REQUIRED)
@@ -123,7 +123,7 @@ public class TemplateGenerator {
 		if (templateDefinition.addDefaultErrorHandling())
 			properties.add(Property.builder()
 					.label("Error Expression")
-					.description("Expression to handle errors. Details in the <a href=\"https://docs.camunda.io/docs/components/connectors/use-connectors/\" target=\"_blank\">documentation</a>.")
+					.description(DefaultTexts.ERROR_EXPRESSION)
 					.groupId(templateDefinition.groupIds().length > 0 ? "errors" : null)
 					.type(TYPE.TEXT)
 					.feel(FEEL.REQUIRED)
