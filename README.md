@@ -359,7 +359,7 @@ public enum Action {
 }
 ```
 
-The validation becomes even more powerful when combined with custom classes and custom JSON mappers. E.g. instead of String username we could have an object Username that can really validate the username by checking whether it exists or complies to the naming convention. For the JSON mapping see below. Example with propagation and conversion:
+The validation becomes even more powerful when combined with custom classes and custom JSON mappers. E.g. instead of `String username` we could have an object `Username username` that can really validate the username by checking whether it exists or complies to the naming convention. For the JSON mapping see below. Example with propagation and conversion:
 
 ```java
 @PropertyDefinition(...)
