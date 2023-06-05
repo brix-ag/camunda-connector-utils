@@ -273,6 +273,11 @@ Input variables (to be copied in @OutboundConnector):
 
 This is the same example as above but grouped. The only difference is that we use two separate groups for the login data and the logout data and not a common data group. So apart from that the generated template is exactly the same.
 
+The advantages compared to the other version:
+
+- Don't need to specify conditions or groups for the properties
+- Easier to manage, especially if there are a lot of fields and actions
+
 To deserialize a request we can use `Deserializer.deserialize(json, gson, clazz)`, where ...
 
 - `json` is the JSON string of the request
@@ -297,11 +302,8 @@ public class GroupedRequest {
             notEmpty = true,
             choiceValues = {"login", "logout"},
             choiceNames = {"Log in", "Log out"},
-            // by default properties in those classes are visible if the corresponding choice is selected
-            choiceClasses = {LoginGroup.class, LogoutGroup.class},
-            // by default properties in the corresponding classes are put in those groups, which are
-            // created using the specified name and the corresponding choice value as group id
-            choiceGroupNames = {"Login Data", "Logout Data"},
+            choiceClasses = {LoginGroup.class, LogoutGroup.class}, // <--
+            choiceGroupNames = {"Login Data", "Logout Data"}, // <--
             value = "login"
     )
     private String action;
