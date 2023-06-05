@@ -57,16 +57,6 @@ public class TemplateGenerator {
 						.id(templateDefinition.groupIds()[i])
 						.label(templateDefinition.groupLabels()[i])
 						.build());
-			if (templateDefinition.addDefaultOutputMapping())
-				groups.add(Group.builder()
-						.id("output")
-						.label("Output Mapping")
-						.build());
-			if (templateDefinition.addDefaultErrorHandling())
-				groups.add(Group.builder()
-						.id("errors")
-						.label("Error Handling")
-						.build());
 			template.setGroups(groups);
 		}
 		Set<Property> properties = new LinkedHashSet<>();
@@ -75,19 +65,31 @@ public class TemplateGenerator {
 		p.setValue(templateDefinition.id());
 		p.setBinding(Binding.builder().type(BINDING_TYPE.ZEEBE_TASK_DEFINITION_TYPE).build());
 		properties.add(p);
-		addProperties(clazz, properties);
-		addSpecialProperties(templateDefinition, properties);
+		properties.addAll(getProperties(clazz, template, null, null, false));
 		template.setProperties(properties);
+		addSpecialProperties(templateDefinition, properties);
+		if (templateDefinition.groupIds().length > 0) { // moved that down to add standard groups last
+			if (templateDefinition.addDefaultOutputMapping())
+				template.getGroups().add(Group.builder()
+						.id("output")
+						.label("Output Mapping")
+						.build());
+			if (templateDefinition.addDefaultErrorHandling())
+				template.getGroups().add(Group.builder()
+						.id("errors")
+						.label("Error Handling")
+						.build());
+		}
+		if (processorClass != null) {
+			TemplateProcessor tp = (TemplateProcessor) processorClass.getConstructor().newInstance();
+			tp.process(template);
+		}
 		File file = new File(args[1]);
 		if (file.getParentFile() != null)
 			file.getParentFile().mkdirs();
 		try (FileWriter fileWriter = new FileWriter(args[1], StandardCharsets.UTF_8)) {
 			fileWriter.write(new GsonBuilder().setPrettyPrinting().create().toJson(template));
 			fileWriter.flush();
-		}
-		if (processorClass != null) {
-			TemplateProcessor tp = (TemplateProcessor) processorClass.getConstructor().newInstance();
-			tp.process(template);
 		}
 		System.out.println("Input variables (to be copied in @OutboundConnector):");
 		System.out.println("{" + properties.stream()
@@ -134,8 +136,10 @@ public class TemplateGenerator {
 					.build());
 	}
 
-	private static void addProperties(Class<?> templateClass, Set<Property> properties) {
-		for (Field field : templateClass.getDeclaredFields()) {
+	private static Set<Property> getProperties(Class<?> propertyClass, Template template, String propertyId, String propertyValue, boolean setGroupToValue) {
+		Set<Property> deferredProperties = new LinkedHashSet<>();
+		Set<Property> properties = new LinkedHashSet<>();
+		for (Field field : propertyClass.getDeclaredFields()) {
 			PropertyDefinition propertyDefinition = field.getDeclaredAnnotation(PropertyDefinition.class);
 			if (propertyDefinition == null)
 				continue;
@@ -151,6 +155,8 @@ public class TemplateGenerator {
 				property.setDescription(propertyDefinition.description());
 			if (!propertyDefinition.groupId().isBlank())
 				property.setGroupId(propertyDefinition.groupId());
+			else if (setGroupToValue)
+				property.setGroupId(propertyValue);
 			property.setType(propertyDefinition.type());
 			if (propertyDefinition.feel() != FEEL.NO && propertyDefinition.type() != TYPE.DROPDOWN && propertyDefinition.type() != TYPE.BOOLEAN)
 				property.setFeel(propertyDefinition.feel());
@@ -190,11 +196,20 @@ public class TemplateGenerator {
 				property.setValue(propertyDefinition.value());
 			if (propertyDefinition.choiceValues().length > 0) {
 				Set<Choice> choices = new LinkedHashSet<>();
-				for (int i = 0; i < propertyDefinition.choiceValues().length; i++)
+				for (int i = 0; i < propertyDefinition.choiceValues().length; i++) {
 					choices.add(Choice.builder()
 							.value(propertyDefinition.choiceValues()[i])
 							.name(propertyDefinition.choiceNames()[i])
 							.build());
+					if (propertyDefinition.choiceClasses().length == propertyDefinition.choiceValues().length) {
+						boolean setToValue = false;
+						if (propertyDefinition.choiceGroupNames().length == propertyDefinition.choiceValues().length) {
+							template.getGroups().add(Group.builder().id(propertyDefinition.choiceValues()[i]).label(propertyDefinition.choiceGroupNames()[i]).build());
+							setToValue = true;
+						}
+						deferredProperties.addAll(getProperties(propertyDefinition.choiceClasses()[i], template, property.getId(), propertyDefinition.choiceValues()[i], setToValue));
+					}
+				}
 				property.setChoices(choices);
 				property.setType(TYPE.DROPDOWN);
 				property.setFeel(null);
@@ -207,9 +222,13 @@ public class TemplateGenerator {
 				if (propertyDefinition.conditionOneOf().length > 0)
 					condition.setOneOf(new LinkedHashSet<>(Arrays.asList(propertyDefinition.conditionOneOf())));
 				property.setCondition(condition);
+			} else if (propertyId != null && propertyValue != null) {
+				property.setCondition(Condition.builder().property(propertyId).equals(propertyValue).build());
 			}
 			properties.add(property);
 		}
+		properties.addAll(deferredProperties);
+		return properties;
 	}
 
 }

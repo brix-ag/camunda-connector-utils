@@ -75,6 +75,22 @@ public @interface PropertyDefinition {
      * @return the choice names in the same order as the choice values
      */
     String[] choiceNames() default {};
+
+    /**
+     * @return a property class for each choice, if choiceClasses is specified then all the annotated properties
+     * in the class are imported, but the condition is set so that the property is only visible when the corresponding
+     * choice was selected. Requires a setter for the corresponding class in the property class to deserialize.
+     * Its name has to start with "set*". This is useful for an "Action" or "Method" dropdown, so the different actions
+     * can be separated. If this feature is used it is recommended to prefix the properties to avoid naming conflicts.
+     */
+    Class<?>[] choiceClasses() default {};
+
+    /**
+     * @return the names (labels) of the choice groups (the choice value is taken as group id).
+     * This only works in combination with choiceClasses. If choiceGroups is set
+     * all the properties in the corresponding class are put in this group unless group is set.
+     */
+    String[] choiceGroupNames() default {};
     /**
      * @return the property id (not binding) on which the condition is based,
      * requires exactly one of conditionEquals or conditionOneOf
