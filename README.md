@@ -52,8 +52,8 @@ Since v1.1 it is possible to group the request. This improved version is shown b
         id = "com.acme.camunda.connectors.acmeEventConnector:1",
         version = 1,
         icon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' ...",
-        groupIds =    {"action", "data"},
-        groupLabels = {"Action", "Data"}
+        groupIds =    {"action"},
+        groupLabels = {"Action"}
 )
 public class Request {
 
