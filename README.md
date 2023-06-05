@@ -355,7 +355,7 @@ Releases can be found on [maven central](https://central.sonatype.com/artifact/c
 <dependency>
   <groupId>ch.brix.camunda.connector</groupId>
   <artifactId>connector-utils</artifactId>
-  <version>1.0.0</version>
+  <version>1.1.0</version>
 </dependency>
 ```
 
