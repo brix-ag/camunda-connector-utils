@@ -481,3 +481,7 @@ We use Spring Boot 3+ (Spring 6+), jakarta validation and a custom connector run
 - Added a `Deserializer` to facilitate the deserialization of nested requests using the new grouping feature
 - Added `acmeSessionConnector.grouped` package with a grouped version of the existing example including deserialization
 - Fixed `TemplateProcessor`: was called after file creation
+
+## 1.2 (coming)
+
+- Added `choiceGroupIds`, this allows to specify the default group independently of the choice value, it is also possible to omit choiceGroupNames and define the groups in TemplateDefinition
