@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -136,9 +137,10 @@ public class TemplateGenerator {
 					.build());
 	}
 
-	private static Set<Property> getProperties(Class<?> propertyClass, Template template, String propertyId, String propertyValue, String groupId) {
+	private static Set<Property> getProperties(Class<?> propertyClass, Template template, String propertyId, Set<String> propertyValues, String groupId) {
 		Set<Property> deferredProperties = new LinkedHashSet<>();
 		Set<Property> properties = new LinkedHashSet<>();
+		Set<Class<?>> processedClasses = new HashSet<>();
 		for (Field field : propertyClass.getDeclaredFields()) {
 			PropertyDefinition propertyDefinition = field.getDeclaredAnnotation(PropertyDefinition.class);
 			if (propertyDefinition == null)
@@ -207,7 +209,15 @@ public class TemplateGenerator {
 							grpId = propertyDefinition.choiceGroupIds().length == propertyDefinition.choiceValues().length && !propertyDefinition.choiceGroupIds()[i].isBlank() ? propertyDefinition.choiceGroupIds()[i] : propertyDefinition.choiceValues()[i];
 							template.getGroups().add(Group.builder().id(grpId).label(propertyDefinition.choiceGroupNames()[i]).build());
 						}
-						deferredProperties.addAll(getProperties(propertyDefinition.choiceClasses()[i], template, property.getId(), propertyDefinition.choiceValues()[i], grpId));
+						if (!processedClasses.contains(propertyDefinition.choiceClasses()[i])) {
+							Set<String> pVals = new HashSet<>();
+							for (int j = 0; j < propertyDefinition.choiceClasses().length; j++) {
+								if (propertyDefinition.choiceClasses()[i].equals(propertyDefinition.choiceClasses()[j]))
+									pVals.add(propertyDefinition.choiceValues()[j]);
+							}
+							deferredProperties.addAll(getProperties(propertyDefinition.choiceClasses()[i], template, property.getId(), pVals, grpId));
+							processedClasses.add(propertyDefinition.choiceClasses()[i]);
+						}
 					}
 				}
 				property.setChoices(choices);
@@ -222,8 +232,12 @@ public class TemplateGenerator {
 				if (propertyDefinition.conditionOneOf().length > 0)
 					condition.setOneOf(new LinkedHashSet<>(Arrays.asList(propertyDefinition.conditionOneOf())));
 				property.setCondition(condition);
-			} else if (propertyId != null && propertyValue != null) {
-				property.setCondition(Condition.builder().property(propertyId).equals(propertyValue).build());
+			} else if (propertyId != null && propertyValues != null && !propertyValues.isEmpty()) {
+				Condition.ConditionBuilder condition = Condition.builder().property(propertyId);
+				if (propertyValues.size() == 1)
+					property.setCondition(condition.equals(propertyValues.iterator().next()).build());
+				else
+					property.setCondition(condition.oneOf(propertyValues).build());
 			}
 			properties.add(property);
 		}

@@ -485,3 +485,4 @@ We use Spring Boot 3+ (Spring 6+), jakarta validation and a custom connector run
 ## 1.2 (coming)
 
 - Added `choiceGroupIds`, this allows to specify the default group independently of the choice value, it is also possible to omit choiceGroupNames and define the groups in TemplateDefinition
+- It is possible to specify the same class multiple times in `choiceClasses`, if a class appears once then by default the condition is set to equals the corresponding value and if the class appears several times then by default the condition is set to conditionOneOf the corresponding values. This is useful for something like search/count which share almost all parameters.
