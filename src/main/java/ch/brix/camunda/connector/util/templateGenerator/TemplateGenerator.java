@@ -65,7 +65,7 @@ public class TemplateGenerator {
 		p.setValue(templateDefinition.id());
 		p.setBinding(Binding.builder().type(BINDING_TYPE.ZEEBE_TASK_DEFINITION_TYPE).build());
 		properties.add(p);
-		properties.addAll(getProperties(clazz, template, null, null, false));
+		properties.addAll(getProperties(clazz, template, null, null, null));
 		template.setProperties(properties);
 		addSpecialProperties(templateDefinition, properties);
 		if (templateDefinition.groupIds().length > 0) { // moved that down to add standard groups last
@@ -136,7 +136,7 @@ public class TemplateGenerator {
 					.build());
 	}
 
-	private static Set<Property> getProperties(Class<?> propertyClass, Template template, String propertyId, String propertyValue, boolean setGroupToValue) {
+	private static Set<Property> getProperties(Class<?> propertyClass, Template template, String propertyId, String propertyValue, String groupId) {
 		Set<Property> deferredProperties = new LinkedHashSet<>();
 		Set<Property> properties = new LinkedHashSet<>();
 		for (Field field : propertyClass.getDeclaredFields()) {
@@ -155,8 +155,8 @@ public class TemplateGenerator {
 				property.setDescription(propertyDefinition.description());
 			if (!propertyDefinition.groupId().isBlank())
 				property.setGroupId(propertyDefinition.groupId());
-			else if (setGroupToValue)
-				property.setGroupId(propertyValue);
+			else if (groupId != null)
+				property.setGroupId(groupId);
 			property.setType(propertyDefinition.type());
 			if (propertyDefinition.feel() != FEEL.NO && propertyDefinition.type() != TYPE.DROPDOWN && propertyDefinition.type() != TYPE.BOOLEAN)
 				property.setFeel(propertyDefinition.feel());
@@ -202,12 +202,12 @@ public class TemplateGenerator {
 							.name(propertyDefinition.choiceNames()[i])
 							.build());
 					if (propertyDefinition.choiceClasses().length == propertyDefinition.choiceValues().length) {
-						boolean setToValue = false;
-						if (propertyDefinition.choiceGroupNames().length == propertyDefinition.choiceValues().length) {
-							template.getGroups().add(Group.builder().id(propertyDefinition.choiceValues()[i]).label(propertyDefinition.choiceGroupNames()[i]).build());
-							setToValue = true;
+						String grpId = null;
+						if (propertyDefinition.choiceGroupNames().length == propertyDefinition.choiceValues().length && !propertyDefinition.choiceGroupNames()[i].isBlank()) {
+							grpId = propertyDefinition.choiceGroupIds().length == propertyDefinition.choiceValues().length && !propertyDefinition.choiceGroupIds()[i].isBlank() ? propertyDefinition.choiceGroupIds()[i] : propertyDefinition.choiceValues()[i];
+							template.getGroups().add(Group.builder().id(grpId).label(propertyDefinition.choiceGroupNames()[i]).build());
 						}
-						deferredProperties.addAll(getProperties(propertyDefinition.choiceClasses()[i], template, property.getId(), propertyDefinition.choiceValues()[i], setToValue));
+						deferredProperties.addAll(getProperties(propertyDefinition.choiceClasses()[i], template, property.getId(), propertyDefinition.choiceValues()[i], grpId));
 					}
 				}
 				property.setChoices(choices);

@@ -86,11 +86,16 @@ public @interface PropertyDefinition {
     Class<?>[] choiceClasses() default {};
 
     /**
-     * @return the names (labels) of the choice groups (the choice value is taken as group id).
-     * This only works in combination with choiceClasses. If choiceGroups is set
-     * all the properties in the corresponding class are put in this group unless group is set.
+     * @return the names (labels) of the choice groups (the choice value is taken as group id unless choiceGroupIds is specified).
+     * This only works in combination with choiceClasses. If choiceGroupNames is set
+     * all the properties in the corresponding class are put in this group by default.
      */
     String[] choiceGroupNames() default {};
+    /**
+     * @return the default group id for all the properties in the corresponding choice class.
+     * If choiceGroupNames is empty then the group has to exist in the TemplateDefinition.
+     */
+    String[] choiceGroupIds() default {};
     /**
      * @return the property id (not binding) on which the condition is based,
      * requires exactly one of conditionEquals or conditionOneOf
