@@ -208,6 +208,8 @@ public class TemplateGenerator {
 						if (propertyDefinition.choiceGroupNames().length == propertyDefinition.choiceValues().length && !propertyDefinition.choiceGroupNames()[i].isBlank()) {
 							grpId = propertyDefinition.choiceGroupIds().length == propertyDefinition.choiceValues().length && !propertyDefinition.choiceGroupIds()[i].isBlank() ? propertyDefinition.choiceGroupIds()[i] : propertyDefinition.choiceValues()[i];
 							template.getGroups().add(Group.builder().id(grpId).label(propertyDefinition.choiceGroupNames()[i]).build());
+						} else if (propertyDefinition.choiceGroupIds().length == propertyDefinition.choiceValues().length && !propertyDefinition.choiceGroupIds()[i].isBlank()) {
+							grpId = propertyDefinition.choiceGroupIds()[i];
 						}
 						if (!processedClasses.contains(propertyDefinition.choiceClasses()[i])) {
 							Set<String> pVals = new HashSet<>();
