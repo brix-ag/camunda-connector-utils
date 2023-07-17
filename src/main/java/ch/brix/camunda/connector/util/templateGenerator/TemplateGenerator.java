@@ -2,15 +2,15 @@ package ch.brix.camunda.connector.util.templateGenerator;
 
 import ch.brix.camunda.connector.util.templateGenerator.schema.*;
 import com.google.gson.GsonBuilder;
+import com.google.gson.annotations.SerializedName;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class TemplateGenerator {
@@ -196,31 +196,73 @@ public class TemplateGenerator {
 				property.setEditable(false);
 			if (!propertyDefinition.value().isBlank())
 				property.setValue(propertyDefinition.value());
-			if (propertyDefinition.choiceValues().length > 0) {
+			if (propertyDefinition.choiceValues().length > 0 || !propertyDefinition.choiceEnum().equals(PropertyDefinition.Null.class)) {
 				Set<Choice> choices = new LinkedHashSet<>();
-				for (int i = 0; i < propertyDefinition.choiceValues().length; i++) {
-					choices.add(Choice.builder()
-							.value(propertyDefinition.choiceValues()[i])
-							.name(propertyDefinition.choiceNames()[i])
-							.build());
-					if (propertyDefinition.choiceClasses().length == propertyDefinition.choiceValues().length) {
-						String grpId = null;
-						if (propertyDefinition.choiceGroupNames().length == propertyDefinition.choiceValues().length && !propertyDefinition.choiceGroupNames()[i].isBlank()) {
-							grpId = propertyDefinition.choiceGroupIds().length == propertyDefinition.choiceValues().length && !propertyDefinition.choiceGroupIds()[i].isBlank() ? propertyDefinition.choiceGroupIds()[i] : propertyDefinition.choiceValues()[i];
-							template.getGroups().add(Group.builder().id(grpId).label(propertyDefinition.choiceGroupNames()[i]).build());
-						} else if (propertyDefinition.choiceGroupIds().length == propertyDefinition.choiceValues().length && !propertyDefinition.choiceGroupIds()[i].isBlank()) {
-							grpId = propertyDefinition.choiceGroupIds()[i];
-						}
-						if (!processedClasses.contains(propertyDefinition.choiceClasses()[i])) {
-							Set<String> pVals = new HashSet<>();
-							for (int j = 0; j < propertyDefinition.choiceClasses().length; j++) {
-								if (propertyDefinition.choiceClasses()[i].equals(propertyDefinition.choiceClasses()[j]))
-									pVals.add(propertyDefinition.choiceValues()[j]);
+				if (propertyDefinition.choiceEnum().equals(PropertyDefinition.Null.class)) {
+					for (int i = 0; i < propertyDefinition.choiceValues().length; i++) {
+						choices.add(Choice.builder()
+								.value(propertyDefinition.choiceValues()[i])
+								.name(propertyDefinition.choiceNames()[i])
+								.build());
+						if (propertyDefinition.choiceClasses().length == propertyDefinition.choiceValues().length) {
+							String grpId = null;
+							if (propertyDefinition.choiceGroupNames().length == propertyDefinition.choiceValues().length && !propertyDefinition.choiceGroupNames()[i].isBlank()) {
+								grpId = propertyDefinition.choiceGroupIds().length == propertyDefinition.choiceValues().length && !propertyDefinition.choiceGroupIds()[i].isBlank() ? propertyDefinition.choiceGroupIds()[i] : propertyDefinition.choiceValues()[i];
+								template.getGroups().add(Group.builder().id(grpId).label(propertyDefinition.choiceGroupNames()[i]).build());
+							} else if (propertyDefinition.choiceGroupIds().length == propertyDefinition.choiceValues().length && !propertyDefinition.choiceGroupIds()[i].isBlank()) {
+								grpId = propertyDefinition.choiceGroupIds()[i];
 							}
-							deferredProperties.addAll(getProperties(propertyDefinition.choiceClasses()[i], template, property.getId(), pVals, grpId));
-							processedClasses.add(propertyDefinition.choiceClasses()[i]);
+							if (!processedClasses.contains(propertyDefinition.choiceClasses()[i])) {
+								Set<String> pVals = new HashSet<>();
+								for (int j = 0; j < propertyDefinition.choiceClasses().length; j++) {
+									if (propertyDefinition.choiceClasses()[i].equals(propertyDefinition.choiceClasses()[j]))
+										pVals.add(propertyDefinition.choiceValues()[j]);
+								}
+								deferredProperties.addAll(getProperties(propertyDefinition.choiceClasses()[i], template, property.getId(), pVals, grpId));
+								processedClasses.add(propertyDefinition.choiceClasses()[i]);
+							}
 						}
 					}
+				} else if (propertyDefinition.choiceEnum().getEnumConstants().length > 0) { // load choices from enum
+					for (Enum<?> enumConstant : propertyDefinition.choiceEnum().getEnumConstants()) {
+						String value = getValue(enumConstant, propertyDefinition.choiceEnum());
+						String name = enumConstant.toString();
+						try {
+							Method getChoiceName = enumConstant.getClass().getDeclaredMethod("getChoiceName");
+							if (String.class.equals(getChoiceName.getReturnType()))
+								name = (String) getChoiceName.invoke(enumConstant);
+						} catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException ignore) {
+						}
+						choices.add(Choice.builder()
+								.value(value)
+								.name(name)
+								.build());
+					}
+					try {
+						Method getChoiceClass = propertyDefinition.choiceEnum().getEnumConstants()[0].getClass().getDeclaredMethod("getChoiceClass");
+						Method getChoiceGroupId = null;
+						if (Class.class.equals(getChoiceClass.getReturnType())) {
+							try {
+								Method m = propertyDefinition.choiceEnum().getEnumConstants()[0].getClass().getDeclaredMethod("getChoiceGroupId");
+								if (String.class.equals(m.getReturnType()))
+									getChoiceGroupId = m;
+							} catch (NoSuchMethodException ignore) {}
+						}
+						Iterator<Choice> iterator = choices.iterator();
+						for (Enum<?> enumConstant : propertyDefinition.choiceEnum().getEnumConstants()) {
+							Class<?> choiceClass = (Class<?>) getChoiceClass.invoke(enumConstant);
+							Choice choice = iterator.next();
+							if (!processedClasses.contains(choiceClass)) {
+								Set<String> pVals = new HashSet<>();
+								choices.forEach(c -> {
+									if (c.getValue().equals(choice.getValue()))
+										pVals.add(choice.getValue());
+								});
+								deferredProperties.addAll(getProperties(choiceClass, template, property.getId(), pVals, getChoiceGroupId == null ? null : (String) getChoiceGroupId.invoke(enumConstant)));
+								processedClasses.add(choiceClass);
+							}
+						}
+					} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ignore) {}
 				}
 				property.setChoices(choices);
 				property.setType(TYPE.DROPDOWN);
@@ -245,6 +287,16 @@ public class TemplateGenerator {
 		}
 		properties.addAll(deferredProperties);
 		return properties;
+	}
+
+	private static String getValue(Enum<?> enumConstant, Class<? extends Enum> theEnum) {
+		String value = enumConstant.name();
+		try {
+			SerializedName serializedName = theEnum.getDeclaredField(value).getAnnotation(SerializedName.class);
+			if (serializedName != null)
+				value = serializedName.value();
+		} catch (NoSuchFieldException ignore) {}
+		return value;
 	}
 
 }

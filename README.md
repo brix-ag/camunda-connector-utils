@@ -33,11 +33,13 @@ This means less time spent implementing, debugging and maintaining the connector
 
 All you have to do is annotate the request class with `@TemplateDefinition` and its fields with `@PropertyDefinition`. Set the required properties for the annotations and the optional ones if needed. Anything that might be confusing should be annotated with javadoc. Optionally add a post processor (only required for very special cases). Then either manually execute the template generator or integrate with maven (see below, also for the arguments).
 
-# Example
+# Simple Example
 
-A very simple connector that lets you log in or log out. The ACME Session Connector returns a token on log in which is required to log out a user.
+A connector that lets you log in or log out. The ACME Session Connector returns a token on log in which is required to log out a user.
 
 Since v1.1 it is possible to group the request. This improved version is shown below.
+
+Choices were improved with v1.3, a [state-of-the-art implementation](#state-of-the-art-example) using this new `choiceEnum` feature can be found below.
 
 ## Form
 
@@ -355,6 +357,52 @@ public class LogoutGroup {
     private String token;
 }
 ```
+```java
+@RequiredArgsConstructor
+@Getter
+public enum Action {
+    //@SerializedName("login") to change the value from LOG_IN to login
+    LOG_IN("Log in", LoginGroup.class, "data"),
+    LOG_OUT("Log out", LogoutGroup.class, "data");
+
+    private final String choiceName;
+    private final Class<?> choiceClass;
+    private final String choiceGroupId;
+    // optionally additional fields, e.g. could specify the groups
+    // to be used for the validation of this action
+}
+```
+
+# State-of-the-Art Example
+
+This is the same as the [grouped example](#grouped-example) except that the groups are defined in the `TemplateDefinition` in the desired order and then referred by their id and not created automatically from the `choiceGroupNames` (which is only recommended for very simple connectors).
+Additionally, it makes use of the `choiceEnum` property to specify choices.
+
+```java
+@Data
+@TemplateDefinition(
+        name = "ACME Session Connector",
+        id = "com.acme.camunda.connectors.acmeEventConnector:1",
+        version = 1,
+        icon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' ...",
+        groupIds =    {"action", "data"},
+        groupLabels = {"Action", "Data"}
+)
+public class StateOfTheArtRequest {
+
+    @PropertyDefinition(
+            label = "Action",
+            groupId = "action",
+            notEmpty = true,
+            choiceEnum = Action.class,
+            value = "LOG_IN"
+    )
+    private Action action;
+
+    private LoginGroup login;
+    private LogoutGroup logout;
+}
+```
 
 # Maven Integration
 
@@ -373,36 +421,37 @@ Releases can be found on [maven central](https://central.sonatype.com/artifact/c
 Relevant settings are marked with comments below.
 
 ```xml
-  <build>
+
+<build>
     <plugins>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>3.1.0</version>
-        <executions>
-          <execution>
-            <id>generate-template</id>
-            <!-- Phase in which the template is generated -->
-            <phase>prepare-package</phase>
-            <goals>
-              <goal>java</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <mainClass>ch.brix.camunda.connector.util.templateGenerator.TemplateGenerator</mainClass>
-          <arguments>
-            <!-- Request class -->
-            <argument>com.acme.camunda.connector.acmeSessionConnector.Request</argument>
-            <!-- Template location (relative if possible) -->
-            <argument>element-templates/template-connector.json</argument>
-            <!-- PostProcessor class (optional) -->
-            <!--argument>com.acme.camunda.connector.acmeSessionConnector.PostProcessor</argument-->
-          </arguments>
-        </configuration>
-      </plugin>
+        <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>3.1.0</version>
+            <executions>
+                <execution>
+                    <id>generate-template</id>
+                    <!-- Phase in which the template is generated -->
+                    <phase>prepare-package</phase>
+                    <goals>
+                        <goal>java</goal>
+                    </goals>
+                </execution>
+            </executions>
+            <configuration>
+                <mainClass>ch.brix.camunda.connector.util.templateGenerator.TemplateGenerator</mainClass>
+                <arguments>
+                    <!-- Request class -->
+                    <argument>com.acme.camunda.connector.acmeSessionConnector.simple.Request</argument>
+                    <!-- Template location (relative if possible) -->
+                    <argument>element-templates/template-connector.json</argument>
+                    <!-- PostProcessor class (optional) -->
+                    <!--argument>com.acme.camunda.connector.acmeSessionConnector.PostProcessor</argument-->
+                </arguments>
+            </configuration>
+        </plugin>
     </plugins>
-  </build>
+</build>
 ```
 
 # Multi Values
@@ -493,3 +542,7 @@ We use Spring Boot 3+ (Spring 6+), jakarta validation and a custom connector run
 - Added `choiceGroupIds`, this allows to specify the default group independently of the choice value, it is also possible to omit choiceGroupNames and define the groups in TemplateDefinition
 - It is possible to specify the same class multiple times in `choiceClasses`, if a class appears once then by default the condition is set to equals the corresponding value and if the class appears several times then by default the condition is set to conditionOneOf the corresponding values. This is useful for something like search/count which share almost all parameters
 - Removed examples from release on maven central
+
+## 1.3 (coming)
+ 
+- Added a new and preferred way to specify choices with the single `choiceEnum` property instead of the multiple other ones

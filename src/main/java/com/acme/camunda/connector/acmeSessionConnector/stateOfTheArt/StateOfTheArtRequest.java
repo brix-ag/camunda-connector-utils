@@ -1,9 +1,9 @@
-package com.acme.camunda.connector.acmeSessionConnector;
+package com.acme.camunda.connector.acmeSessionConnector.stateOfTheArt;
 
-import ch.brix.camunda.connector.util.templateGenerator.DefaultTexts;
 import ch.brix.camunda.connector.util.templateGenerator.PropertyDefinition;
 import ch.brix.camunda.connector.util.templateGenerator.TemplateDefinition;
-import ch.brix.camunda.connector.util.templateGenerator.schema.FEEL;
+import com.acme.camunda.connector.acmeSessionConnector.grouped.LoginGroup;
+import com.acme.camunda.connector.acmeSessionConnector.grouped.LogoutGroup;
 import lombok.Data;
 
 @Data
@@ -15,46 +15,17 @@ import lombok.Data;
         groupIds =    {"action", "data"},
         groupLabels = {"Action", "Data"}
 )
-public class Request {
+public class StateOfTheArtRequest {
 
     @PropertyDefinition(
             label = "Action",
             groupId = "action",
             notEmpty = true,
-            choiceValues = {"login", "logout"},
-            choiceNames = {"Log in", "Log out"},
-            value = "login"
+            choiceEnum = Action.class,
+            value = "LOG_IN"
     )
-    private String action;
+    private Action action;
 
-    @PropertyDefinition(
-            label = "Username",
-            groupId = "data",
-            notEmpty = true,
-            conditionPropertyId = "action",
-            conditionEquals = "login"
-    )
-    private String username;
-
-    @PropertyDefinition(
-            label = "Password",
-            description = DefaultTexts.SECRETS_SUPPORTED,
-            groupId = "data",
-            notEmpty = true,
-            conditionPropertyId = "action",
-            conditionEquals = "login"
-    )
-    //@Secret (dependency missing here, but all fields that support secrets have to be marked with this annotation)
-    private String password;
-
-    @PropertyDefinition(
-            label = "Token",
-            groupId = "data",
-            feel = FEEL.REQUIRED,
-            notEmpty = true,
-            conditionPropertyId = "action",
-            conditionEquals = "logout"
-    )
-    private String token;
-
+    private LoginGroup login;
+    private LogoutGroup logout;
 }

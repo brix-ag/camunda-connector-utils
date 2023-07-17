@@ -97,6 +97,18 @@ public @interface PropertyDefinition {
      */
     String[] choiceGroupIds() default {};
     /**
+     * Instead of using the other choice* properties everything can be set using an enum (recommended).
+     * @return the enum with the choices:<ul>
+     *     <li>choiceValue: taken from the @SerializedName annotation and if not present the enum constant name is used as value (so deserialization should work without problems)
+     *     <li>choiceName: if there is a function <em>String getChoiceName()</em> this will be taken otherwise the result of <em>String toString()</em></li>
+     *     <li>choiceClass: if there is a function <em>Class getChoiceClass()</em> it will be used as choice class and all its properties loaded</li>
+     *     <li>choiceGroupId: if there is a function <em>String getChoiceGroupId</em> it will be taken as default group for all properties in the corresponding choice class</li>
+     * </ul>getChoiceGroupId() this will be the default group id for the
+     * properties in the corresponding choice class.
+     */
+    Class<? extends Enum> choiceEnum() default Null.class;
+
+    /**
      * @return the property id (not binding) on which the condition is based,
      * requires exactly one of conditionEquals or conditionOneOf
      */
@@ -105,4 +117,6 @@ public @interface PropertyDefinition {
     String[] conditionOneOf() default {};
     // This makes absolutely no sense, there is no multi-value property type like dropdown with multi-selection.
     // String[] conditionAllOf() default {};
+
+    enum Null {}
 }
