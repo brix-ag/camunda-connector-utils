@@ -7,7 +7,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class Deserializer {
 
@@ -23,19 +25,41 @@ public class Deserializer {
 
     private static void parseClass(Object parent, String json, Gson gson) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
         Map<Class<?>, Method> setters = findSetters(parent.getClass());
+        Set<Class<?>> processed = new HashSet<>();
         for (Field field : parent.getClass().getDeclaredFields()) {
             PropertyDefinition pd = field.getDeclaredAnnotation(PropertyDefinition.class);
-            if (pd == null || pd.choiceValues().length == 0 || pd.choiceClasses().length != pd.choiceValues().length)
+            if (pd == null)
                 continue;
-            Class<?>[] choiceClasses = pd.choiceClasses();
-            for (Class<?> choiceClass : choiceClasses) {
-                Object o = gson.fromJson(json, choiceClass);
-                if (setters.containsKey(choiceClass)) {
-                    setters.get(o.getClass()).invoke(parent, o);
-                } else {
-                    throw new NoSuchMethodException("Setter for class " + choiceClass.getName() + " missing or incorrectly named.");
+            if (pd.choiceClasses().length > 0 && pd.choiceClasses().length == pd.choiceValues().length) {
+                Class<?>[] choiceClasses = pd.choiceClasses();
+                for (Class<?> choiceClass : choiceClasses) {
+                    if (processed.contains(choiceClass))
+                        continue;
+                    Object o = gson.fromJson(json, choiceClass);
+                    if (setters.containsKey(choiceClass)) {
+                        setters.get(o.getClass()).invoke(parent, o);
+                    } else {
+                        throw new NoSuchMethodException("Setter for class " + choiceClass.getName() + " missing.");
+                    }
+                    processed.add(choiceClass);
+                    parseClass(o, json, gson);
                 }
-                parseClass(o, json, gson);
+            } else if (!pd.choiceEnum().equals(PropertyDefinition.Null.class)) {
+                try {
+                    Method getChoiceClass = pd.choiceEnum().getDeclaredMethod("getChoiceClass");
+                    for (Enum<?> enumConstant : pd.choiceEnum().getEnumConstants()) {
+                        Class<?> clazz = (Class<?>) getChoiceClass.invoke(enumConstant);
+                        if (processed.contains(clazz))
+                            continue;
+                        Object o = gson.fromJson(json, clazz);
+                        if (setters.containsKey(clazz)) {
+                            setters.get(o.getClass()).invoke(parent, o);
+                        } else {
+                            throw new NoSuchMethodException("Setter for class " + clazz.getName() + " missing.");
+                        }
+                        parseClass(o, json, gson);
+                    }
+                } catch (NoSuchMethodException | SecurityException ignore) {}
             }
         }
     }

@@ -413,7 +413,7 @@ Releases can be found on [maven central](https://central.sonatype.com/artifact/c
 <dependency>
   <groupId>ch.brix.camunda.connector</groupId>
   <artifactId>connector-utils</artifactId>
-  <version>1.2.0</version>
+  <version>1.3.0</version>
 </dependency>
 ```
 
@@ -544,6 +544,11 @@ We use Spring Boot 3+ (Spring 6+), jakarta validation and a custom connector run
 - It is possible to specify the same class multiple times in `choiceClasses`, if a class appears once then by default the condition is set to equals the corresponding value and if the class appears several times then by default the condition is set to conditionOneOf the corresponding values. This is useful for something like search/count which share almost all parameters
 - Removed examples from release on maven central
 
-## 1.3 (coming)
+## 1.3
  
-- Added a new and preferred way to specify choices with the single `choiceEnum` property instead of the multiple other ones
+- Added a new and preferred way to specify choices with the single `choiceEnum` property instead of the multiple other ones. This property allows to specify an enum for the choices, it works as follows:
+    - The enum constant name becomes the value unless it is annotated with `@SerializedName` then this value is taken, so deserializing the property into this enum works automatically
+    - For the name (label) of the dropdown choice it takes the return value of `String getChoiceName()` if that method is present, otherwise `toString()` is used.
+    - If there is a method `Class<?> getChoiceClass()` this is used as choice class (all properties in this class are loaded and by default they are visible if the corresponding choice is selected).
+    - If there is a method `String getChoiceGroupId()` this will be used as default group for all properties in the choice class.
+- Set notEmpty in the condition if a pattern is specified to avoid schema violations

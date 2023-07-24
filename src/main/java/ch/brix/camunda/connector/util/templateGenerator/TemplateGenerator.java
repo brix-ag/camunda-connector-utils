@@ -187,6 +187,7 @@ public class TemplateGenerator {
 					if (!propertyDefinition.patternMessage().isBlank())
 						pattern.setMessage(propertyDefinition.patternMessage());
 					constraints.setPattern(pattern);
+					constraints.setNotEmpty(propertyDefinition.notEmpty());
 				}
 				property.setConstraints(constraints);
 			}
@@ -224,45 +225,59 @@ public class TemplateGenerator {
 						}
 					}
 				} else if (propertyDefinition.choiceEnum().getEnumConstants().length > 0) { // load choices from enum
+					Method getChoiceName = null;
+					try {
+						getChoiceName = propertyDefinition.choiceEnum().getDeclaredMethod("getChoiceName");
+					} catch (NoSuchMethodException ignore) {}
+					Method getChoiceClass = null;
+					try {
+						getChoiceClass = propertyDefinition.choiceEnum().getDeclaredMethod("getChoiceClass");
+					} catch (NoSuchMethodException ignore) {}
+					Method getChoiceGroupId = null;
+					try {
+						getChoiceGroupId = propertyDefinition.choiceEnum().getDeclaredMethod("getChoiceGroupId");
+					} catch (NoSuchMethodException ignore) {}
+					Map<Class<?>, Set<String>> optionsPerClass = new HashMap<>();
+					List<String> choiceGroupIds = new ArrayList<>();
+					List<Class<?>> choiceClasses = new ArrayList<>();
 					for (Enum<?> enumConstant : propertyDefinition.choiceEnum().getEnumConstants()) {
 						String value = getValue(enumConstant, propertyDefinition.choiceEnum());
 						String name = enumConstant.toString();
-						try {
-							Method getChoiceName = enumConstant.getClass().getDeclaredMethod("getChoiceName");
-							if (String.class.equals(getChoiceName.getReturnType()))
+						if (getChoiceName != null) {
+							try {
 								name = (String) getChoiceName.invoke(enumConstant);
-						} catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException ignore) {
+							} catch (IllegalAccessException | InvocationTargetException ignore) {}
 						}
 						choices.add(Choice.builder()
 								.value(value)
 								.name(name)
 								.build());
-					}
-					try {
-						Method getChoiceClass = propertyDefinition.choiceEnum().getEnumConstants()[0].getClass().getDeclaredMethod("getChoiceClass");
-						Method getChoiceGroupId = null;
-						if (Class.class.equals(getChoiceClass.getReturnType())) {
+						if (getChoiceClass != null) {
 							try {
-								Method m = propertyDefinition.choiceEnum().getEnumConstants()[0].getClass().getDeclaredMethod("getChoiceGroupId");
-								if (String.class.equals(m.getReturnType()))
-									getChoiceGroupId = m;
-							} catch (NoSuchMethodException ignore) {}
-						}
-						Iterator<Choice> iterator = choices.iterator();
-						for (Enum<?> enumConstant : propertyDefinition.choiceEnum().getEnumConstants()) {
-							Class<?> choiceClass = (Class<?>) getChoiceClass.invoke(enumConstant);
-							Choice choice = iterator.next();
-							if (!processedClasses.contains(choiceClass)) {
-								Set<String> pVals = new HashSet<>();
-								choices.forEach(c -> {
-									if (c.getValue().equals(choice.getValue()))
-										pVals.add(choice.getValue());
-								});
-								deferredProperties.addAll(getProperties(choiceClass, template, property.getId(), pVals, getChoiceGroupId == null ? null : (String) getChoiceGroupId.invoke(enumConstant)));
-								processedClasses.add(choiceClass);
+								Class<?> clazz = (Class<?>) getChoiceClass.invoke(enumConstant);
+								choiceClasses.add(clazz);
+								optionsPerClass.computeIfAbsent(clazz, x -> new HashSet<>()).add(value);
+							} catch (IllegalAccessException | InvocationTargetException e) {
+								choiceClasses.add(null);
 							}
 						}
-					} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ignore) {}
+						if (getChoiceGroupId != null) {
+							try {
+								choiceGroupIds.add((String) getChoiceGroupId.invoke(enumConstant));
+							} catch (IllegalAccessException | InvocationTargetException e) {
+								choiceGroupIds.add(null);
+							}
+						}
+					}
+					Iterator<String> cgis = choiceGroupIds.iterator();
+					for (Class<?> choiceClass : choiceClasses) {
+						if (choiceClass == null)
+							continue;
+						if (!processedClasses.contains(choiceClass)) {
+							deferredProperties.addAll(getProperties(choiceClass, template, property.getId(), optionsPerClass.get(choiceClass), getChoiceGroupId == null ? null : cgis.next()));
+							processedClasses.add(choiceClass);
+						}
+					}
 				}
 				property.setChoices(choices);
 				property.setType(TYPE.DROPDOWN);
