@@ -338,10 +338,8 @@ public class LoginGroup {
 
     @PropertyDefinition(
             label = "Password",
-            description = DefaultTexts.SECRETS_SUPPORTED,
             notEmpty = true
     )
-    //@Secret (dependency missing here, but all fields that support secrets have to be marked with this annotation)
     private String password;
 }
 ```
@@ -384,8 +382,7 @@ public class StateOfTheArtRequest {
             value = "LOG_IN"
     )
     private Action action;
-
-    //@Secret if class contains secrets
+    
     private LoginGroup login;
     private LogoutGroup logout;
 }
