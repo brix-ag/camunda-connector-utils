@@ -41,7 +41,7 @@ Since v1.1 it is possible to group the request. This improved version is shown b
 
 Choices were improved with v1.3, a [state-of-the-art implementation](#state-of-the-art-example) using this new `choiceEnum` feature can be found below.
 
-With the introduction of the @PropertyGroup annotation in v1.4 it is possible to split the request class by groups and not just by choices.
+With the introduction of the `@PropertyGroup` annotation in v1.4 it is possible to split the request class by groups (or anything) and not just by choices.
 
 ## Form
 
@@ -553,3 +553,12 @@ We use Spring Boot 3+ (Spring 6+), jakarta validation and a custom connector run
     - If there is a method `Class<?> getChoiceClass()` this is used as choice class (all properties in this class are loaded and by default they are visible if the corresponding choice is selected).
     - If there is a method `String getChoiceGroupId()` this will be used as default group for all properties in the choice class.
 - Set notEmpty in the condition if a pattern is specified to avoid schema violations
+
+## 1.4
+
+- Added `@PropertyGroup` annotation to be able to split classes by groups (or anything, groups is just intended and most convenient):
+  - Fields annotated with that property have to have a setter starting with "set" (will be found automatically by the `Deserializer`)
+  - All properties in that field's class are loaded
+  - Default groupId and conditions for the properties are inherited by default but can be set on the annotation
+  - propertyIds still have to be globally unique
+- Set Java version to 11 we don't really need 17 for just the template generator

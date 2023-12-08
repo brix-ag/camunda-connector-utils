@@ -19,6 +19,11 @@ public @interface PropertyGroup {
     String groupId() default "";
 
     /**
+     * @return group name to create the group on the fly, however setting all groups globally is preferred
+     */
+    String groupName() default "";
+
+    /**
      * @return the default property for the condition, if left empty inherited from parent
      */
     String conditionPropertyId() default "";
