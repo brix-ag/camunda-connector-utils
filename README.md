@@ -41,6 +41,8 @@ Since v1.1 it is possible to group the request. This improved version is shown b
 
 Choices were improved with v1.3, a [state-of-the-art implementation](#state-of-the-art-example) using this new `choiceEnum` feature can be found below.
 
+With the introduction of the @PropertyGroup annotation in v1.4 it is possible to split the request class by groups and not just by choices.
+
 ## Form
 
 <img src="example.png" alt="form" width="300">
@@ -412,7 +414,7 @@ Releases can be found on [maven central](https://central.sonatype.com/artifact/c
 <dependency>
   <groupId>ch.brix.camunda.connector</groupId>
   <artifactId>connector-utils</artifactId>
-  <version>1.3.0</version>
+  <version>1.4.0</version>
 </dependency>
 ```
 

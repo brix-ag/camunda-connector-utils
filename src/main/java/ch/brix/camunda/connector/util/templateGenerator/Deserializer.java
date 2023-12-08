@@ -16,17 +16,27 @@ public class Deserializer {
     public static <T> T deserialize(String json, Gson gson, Class<T> templateClass) {
         Object request = gson.fromJson(json, templateClass);
         try {
-            parseClass(request, json, gson);
+            parseClass(request, json, gson, new HashSet<>());
         } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
             throw new JsonParseException(e);
         }
         return (T) request;
     }
 
-    private static void parseClass(Object parent, String json, Gson gson) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+    private static void parseClass(Object parent, String json, Gson gson, Set<Class<?>> processed) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
         Map<Class<?>, Method> setters = findSetters(parent.getClass());
-        Set<Class<?>> processed = new HashSet<>();
         for (Field field : parent.getClass().getDeclaredFields()) {
+            PropertyGroup pg = field.getDeclaredAnnotation(PropertyGroup.class);
+            if (pg != null && !processed.contains(field.getType())) {
+                Object o = gson.fromJson(json, field.getType());
+                if (setters.containsKey(field.getType())) {
+                    setters.get(o.getClass()).invoke(parent, o);
+                } else {
+                    throw new NoSuchMethodException("Setter for class " + field.getType().getName() + " missing.");
+                }
+                processed.add(field.getType());
+                parseClass(o, json, gson, processed);
+            }
             PropertyDefinition pd = field.getDeclaredAnnotation(PropertyDefinition.class);
             if (pd == null)
                 continue;
@@ -42,7 +52,7 @@ public class Deserializer {
                         throw new NoSuchMethodException("Setter for class " + choiceClass.getName() + " missing.");
                     }
                     processed.add(choiceClass);
-                    parseClass(o, json, gson);
+                    parseClass(o, json, gson, processed);
                 }
             } else if (!pd.choiceEnum().equals(PropertyDefinition.Null.class)) {
                 try {
@@ -57,7 +67,7 @@ public class Deserializer {
                         } else {
                             throw new NoSuchMethodException("Setter for class " + clazz.getName() + " missing.");
                         }
-                        parseClass(o, json, gson);
+                        parseClass(o, json, gson, processed);
                     }
                 } catch (NoSuchMethodException | SecurityException ignore) {}
             }
@@ -71,10 +81,6 @@ public class Deserializer {
                 setters.put(method.getParameterTypes()[0], method);
         }
         return setters;
-    }
-
-    public static String toSetterName(Field field) {
-        return "set" + field.getName().substring(0, 1).toUpperCase() + field.getName().substring(1);
     }
 
 }

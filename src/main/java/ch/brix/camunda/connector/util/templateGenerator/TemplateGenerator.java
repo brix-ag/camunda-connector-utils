@@ -142,6 +142,13 @@ public class TemplateGenerator {
 		Set<Property> properties = new LinkedHashSet<>();
 		Set<Class<?>> processedClasses = new HashSet<>();
 		for (Field field : propertyClass.getDeclaredFields()) {
+			PropertyGroup propertyGroup = field.getDeclaredAnnotation(PropertyGroup.class);
+			if (propertyGroup != null && !processedClasses.contains(field.getType())) {
+				deferredProperties.addAll(getProperties(field.getType(), template,
+						propertyGroup.conditionPropertyId().isEmpty() ? propertyId : propertyGroup.conditionPropertyId(),
+						propertyGroup.conditionOneOf().length == 0 ? propertyValues : Arrays.stream(propertyGroup.conditionOneOf()).collect(Collectors.toSet()),
+						propertyGroup.groupId().isEmpty() ? groupId : propertyGroup.groupId()));
+			}
 			PropertyDefinition propertyDefinition = field.getDeclaredAnnotation(PropertyDefinition.class);
 			if (propertyDefinition == null)
 				continue;
@@ -174,21 +181,7 @@ public class TemplateGenerator {
 				binding.setKey(propertyDefinition.bindingKey());
 			property.setBinding(binding);
 			if (propertyDefinition.notEmpty() || propertyDefinition.minLength() > 0 || propertyDefinition.maxLength() > 0 || !propertyDefinition.pattern().isBlank()) {
-				Constraints constraints = new Constraints();
-				if (propertyDefinition.notEmpty())
-					constraints.setNotEmpty(true);
-				if (propertyDefinition.minLength() > 0)
-					constraints.setMinLength(propertyDefinition.minLength());
-				if (propertyDefinition.maxLength() > 0)
-					constraints.setMaxLength(propertyDefinition.maxLength());
-				if (!propertyDefinition.pattern().isBlank()) {
-					Pattern pattern = new Pattern();
-					pattern.setRegex(propertyDefinition.pattern());
-					if (!propertyDefinition.patternMessage().isBlank())
-						pattern.setMessage(propertyDefinition.patternMessage());
-					constraints.setPattern(pattern);
-					constraints.setNotEmpty(propertyDefinition.notEmpty());
-				}
+				Constraints constraints = getConstraints(propertyDefinition);
 				property.setConstraints(constraints);
 			}
 			if (propertyDefinition.optional())
@@ -302,6 +295,25 @@ public class TemplateGenerator {
 		}
 		properties.addAll(deferredProperties);
 		return properties;
+	}
+
+	private static Constraints getConstraints(PropertyDefinition propertyDefinition) {
+		Constraints constraints = new Constraints();
+		if (propertyDefinition.notEmpty())
+			constraints.setNotEmpty(true);
+		if (propertyDefinition.minLength() > 0)
+			constraints.setMinLength(propertyDefinition.minLength());
+		if (propertyDefinition.maxLength() > 0)
+			constraints.setMaxLength(propertyDefinition.maxLength());
+		if (!propertyDefinition.pattern().isBlank()) {
+			Pattern pattern = new Pattern();
+			pattern.setRegex(propertyDefinition.pattern());
+			if (!propertyDefinition.patternMessage().isBlank())
+				pattern.setMessage(propertyDefinition.patternMessage());
+			constraints.setPattern(pattern);
+			constraints.setNotEmpty(propertyDefinition.notEmpty());
+		}
+		return constraints;
 	}
 
 	private static String getValue(Enum<?> enumConstant, Class<? extends Enum> theEnum) {
