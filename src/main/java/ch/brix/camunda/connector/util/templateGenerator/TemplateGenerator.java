@@ -146,7 +146,7 @@ public class TemplateGenerator {
 			if (propertyGroup != null && !processedClasses.contains(field.getType())) {
 				String grpId = propertyGroup.groupId().isEmpty() ? groupId : propertyGroup.groupId();
 				if (!propertyGroup.groupName().isEmpty())
-					Group.builder().id(grpId).label(propertyGroup.groupName()).build();
+					template.getGroups().add(Group.builder().id(grpId).label(propertyGroup.groupName()).build());
 				deferredProperties.addAll(getProperties(field.getType(), template,
 						propertyGroup.conditionPropertyId().isEmpty() ? propertyId : propertyGroup.conditionPropertyId(),
 						propertyGroup.conditionOneOf().length == 0 ? propertyValues : Arrays.stream(propertyGroup.conditionOneOf()).collect(Collectors.toSet()),
