@@ -22,7 +22,7 @@ public @interface PropertyDefinition {
     String FIELD = "<field>";
 
     /**
-     * The id is required for conditions. The field name is taken as default,
+     * The id is required for conditions. The field name is taken as default (can be overwritten by @SerializedName),
      * so this should work automatically and doesn't have to be set manually.
      * @return an id, empty string to omit the id or PropertyDefinition.FIELD to take the field's name (default)
      */
@@ -53,7 +53,7 @@ public @interface PropertyDefinition {
      */
     BINDING_TYPE bindingType() default BINDING_TYPE.ZEEBE_INPUT;
     /**
-     * @return A binding name, empty string to omit the value or PropertyDefinition.FIELD to take the field's name (default)
+     * @return A binding name, empty string to omit the value or PropertyDefinition.FIELD to take the field's name (default, can be overwritten by @SerializeName)
      */
     String bindingName() default FIELD;
     String bindingKey() default "";

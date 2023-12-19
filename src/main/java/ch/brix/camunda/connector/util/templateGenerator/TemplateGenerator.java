@@ -153,13 +153,14 @@ public class TemplateGenerator {
 						grpId));
 			}
 			PropertyDefinition propertyDefinition = field.getDeclaredAnnotation(PropertyDefinition.class);
+			SerializedName serializedName = field.getDeclaredAnnotation(SerializedName.class);
 			if (propertyDefinition == null)
 				continue;
 			Property property = new Property();
 			property.setLabel(propertyDefinition.label());
 			if (!propertyDefinition.id().isBlank()) {
 				if (propertyDefinition.id().equals("<field>"))
-					property.setId(field.getName());
+					property.setId(serializedName == null ? field.getName() : serializedName.value());
 				else
 					property.setId(propertyDefinition.id());
 			}
@@ -176,7 +177,7 @@ public class TemplateGenerator {
 			binding.setType(propertyDefinition.bindingType());
 			if (!propertyDefinition.bindingName().isBlank()) {
 				if (propertyDefinition.bindingName().equals("<field>"))
-					binding.setName(field.getName());
+					binding.setName(serializedName == null ? field.getName() : serializedName.value());
 				else
 					binding.setName(propertyDefinition.bindingName());
 			}
