@@ -53,7 +53,7 @@ public @interface PropertyDefinition {
      */
     BINDING_TYPE bindingType() default BINDING_TYPE.ZEEBE_INPUT;
     /**
-     * @return A binding name, empty string to omit the value or PropertyDefinition.FIELD to take the field's name (default, can be overwritten by @SerializeName)
+     * @return A binding name, empty string to omit the value or PropertyDefinition.FIELD (default) to take the field's name (WARNING: always use this in combination with @SerializeName to change the binding name if the property is intended to be deserialized by the Deserializer)
      */
     String bindingName() default FIELD;
     String bindingKey() default "";
