@@ -51,15 +51,13 @@ public class TemplateGenerator {
 		template.setElementType(ElementType.builder()
 				.value(templateDefinition.elementType())
 				.build());
-		if (templateDefinition.groupIds().length > 0) {
-			Set<Group> groups = new LinkedHashSet<>();
-			for (int i = 0; i < templateDefinition.groupIds().length; i++)
-				groups.add(Group.builder()
-						.id(templateDefinition.groupIds()[i])
-						.label(templateDefinition.groupLabels()[i])
-						.build());
-			template.setGroups(groups);
-		}
+		Set<Group> groups = new LinkedHashSet<>();
+		for (int i = 0; i < templateDefinition.groupIds().length; i++)
+			groups.add(Group.builder()
+					.id(templateDefinition.groupIds()[i])
+					.label(templateDefinition.groupLabels()[i])
+					.build());
+		template.setGroups(groups);
 		Set<Property> properties = new LinkedHashSet<>();
 		Property p = new Property();
 		p.setType(TYPE.HIDDEN);
@@ -69,18 +67,17 @@ public class TemplateGenerator {
 		properties.addAll(getProperties(clazz, template, null, null, null));
 		template.setProperties(properties);
 		addSpecialProperties(templateDefinition, properties);
-		if (templateDefinition.groupIds().length > 0) { // moved that down to add standard groups last
-			if (templateDefinition.addDefaultOutputMapping())
-				template.getGroups().add(Group.builder()
-						.id("output")
-						.label("Output Mapping")
-						.build());
-			if (templateDefinition.addDefaultErrorHandling())
-				template.getGroups().add(Group.builder()
-						.id("errors")
-						.label("Error Handling")
-						.build());
-		}
+		// moved that down to add standard groups last
+		if (templateDefinition.addDefaultOutputMapping())
+			template.getGroups().add(Group.builder()
+					.id("output")
+					.label("Output Mapping")
+					.build());
+		if (templateDefinition.addDefaultErrorHandling())
+			template.getGroups().add(Group.builder()
+					.id("errors")
+					.label("Error Handling")
+					.build());
 		if (processorClass != null) {
 			TemplateProcessor tp = (TemplateProcessor) processorClass.getConstructor().newInstance();
 			tp.process(template);
