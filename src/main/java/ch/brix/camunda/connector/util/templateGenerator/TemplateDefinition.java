@@ -67,6 +67,9 @@ public @interface TemplateDefinition {
      * @return true to add the default output mapping automatically
      */
     boolean addDefaultOutputMapping() default true;
+
+    String defaultOutputMappingResultExpressionDescription() default "Expression to handle the result. Details in the <a href=\"https://docs.camunda.io/docs/components/connectors/use-connectors/\" target=\"_blank\">documentation</a>.";
+
     /**
      * Adds standard "Error Expression" field.
      * If there is at least one group defined the group "Error Handling" (ID: "errors") is created if it doesn't exist
@@ -74,4 +77,6 @@ public @interface TemplateDefinition {
      * @return true to add the default error handling automatically
      */
     boolean addDefaultErrorHandling() default true;
+
+    String defaultErrorHandlingExpressionDescription() default "Expression to handle errors. Details in the <a href=\"https://docs.camunda.io/docs/components/connectors/use-connectors/\" target=\"_blank\">documentation</a>.";
 }

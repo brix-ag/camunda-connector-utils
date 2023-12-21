@@ -100,7 +100,7 @@ public class TemplateGenerator {
 		if (templateDefinition.addDefaultOutputMapping()) {
 			properties.add(Property.builder()
 					.label("Result Variable")
-					.description(DefaultTexts.RESULT_VARIABLE)
+					.description("Name of the variable to store the response in.")
 					.groupId(templateDefinition.groupIds().length > 0 ? "output" : null)
 					.type(TYPE.STRING)
 					.binding(Binding.builder()
@@ -110,7 +110,7 @@ public class TemplateGenerator {
 					.build());
 			properties.add(Property.builder()
 					.label("Result Expression")
-					.description(DefaultTexts.RESULT_EXPRESSION)
+					.description(templateDefinition.defaultOutputMappingResultExpressionDescription())
 					.groupId(templateDefinition.groupIds().length > 0 ? "output" : null)
 					.type(TYPE.TEXT)
 					.feel(FEEL.REQUIRED)
@@ -123,7 +123,7 @@ public class TemplateGenerator {
 		if (templateDefinition.addDefaultErrorHandling())
 			properties.add(Property.builder()
 					.label("Error Expression")
-					.description(DefaultTexts.ERROR_EXPRESSION)
+					.description(templateDefinition.defaultErrorHandlingExpressionDescription())
 					.groupId(templateDefinition.groupIds().length > 0 ? "errors" : null)
 					.type(TYPE.TEXT)
 					.feel(FEEL.REQUIRED)

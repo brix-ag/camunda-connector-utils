@@ -561,5 +561,6 @@ We use Spring Boot 3+ (Spring 6+), jakarta validation and a custom connector run
   - All properties in that field's class are loaded
   - Default groupId and conditions for the properties are inherited by default but can be set on the annotation
   - propertyIds still have to be globally unique
-- Improvement: If a value comes from the field name, then it can be overwritten with @SerializedName, so the precedence is explicitly specified value, value from @Serialized name, field name.
+- If a value comes from the field name, then it can be overridden by @SerializedName, so the precedence is explicitly specified value, value from @Serialized name, field name. This guarantees correct deserialization.
+- Added `defaultOutputMappingResultExpressionDescription` and `defaultErrorHandlingExpressionDescription` to `@TemplateDefinition` to be able to add custom descriptions to those standard fields (without having to create the whole groups manually).
 - Set Java version to 11 we don't really need 17 for just the template generator
