@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface TemplateDefinition {
-    String schema() default "https://unpkg.com/@camunda/zeebe-element-templates-json-schema@0.8.0/resources/schema.json";
+    String schema() default "https://unpkg.com/@camunda/zeebe-element-templates-json-schema@0.17.0/resources/schema.json";
 
     /**
      * @return Human-readable name of the connector, e.g. "ACME Connector"
