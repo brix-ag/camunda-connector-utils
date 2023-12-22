@@ -13,6 +13,5 @@ public class Group {
     private String id;
     private String label;
     private String tooltip;
-    @Builder.Default
-    private boolean openByDefault = true;
+    private Boolean openByDefault;
 }

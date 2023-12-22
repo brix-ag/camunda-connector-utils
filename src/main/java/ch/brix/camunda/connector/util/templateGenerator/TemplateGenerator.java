@@ -56,10 +56,10 @@ public class TemplateGenerator {
 			Group.GroupBuilder builder = Group.builder().id(templateDefinition.groupIds()[i]);
 			if (templateDefinition.groupLabels().length == templateDefinition.groupIds().length)
 				builder.label(templateDefinition.groupLabels()[i]);
-			if (templateDefinition.groupTooltips().length == templateDefinition.groupIds().length)
+			if (templateDefinition.groupTooltips().length == templateDefinition.groupIds().length && !templateDefinition.groupTooltips()[i].isBlank())
 				builder.tooltip(templateDefinition.groupTooltips()[i]);
-			if (templateDefinition.groupOpenByDefaults().length == templateDefinition.groupIds().length)
-				builder.openByDefault(templateDefinition.groupOpenByDefaults()[i]);
+			if (templateDefinition.groupOpenByDefaults().length == templateDefinition.groupIds().length && !templateDefinition.groupOpenByDefaults()[i])
+				builder.openByDefault(false);
 			groups.add(builder.build());
 		}
 		template.setGroups(groups);
@@ -77,13 +77,13 @@ public class TemplateGenerator {
 			template.getGroups().add(Group.builder()
 					.id("output")
 					.label("Output Mapping")
-					.tooltip(templateDefinition.defaultOutputMappingTooltip())
+					.tooltip(templateDefinition.defaultOutputMappingTooltip().isBlank() ? null : templateDefinition.defaultOutputMappingTooltip())
 					.build());
 		if (templateDefinition.addDefaultErrorHandling())
 			template.getGroups().add(Group.builder()
 					.id("errors")
 					.label("Error Handling")
-					.tooltip(templateDefinition.defaultErrorHandlingTooltip())
+					.tooltip(templateDefinition.defaultErrorHandlingTooltip().isBlank() ? null : templateDefinition.defaultErrorHandlingTooltip())
 					.build());
 		if (processorClass != null) {
 			TemplateProcessor tp = (TemplateProcessor) processorClass.getConstructor().newInstance();
@@ -153,7 +153,7 @@ public class TemplateGenerator {
 					template.getGroups().add(Group.builder().id(grpId)
 							.label(propertyGroup.groupName())
 							.tooltip(propertyGroup.groupTooltip().isBlank() ? null : propertyGroup.groupTooltip())
-							.openByDefault(propertyGroup.openByDefault()).build());
+							.openByDefault(propertyGroup.openByDefault() ? null : false).build());
 				deferredProperties.addAll(getProperties(field.getType(), template,
 						propertyGroup.conditionPropertyId().isEmpty() ? propertyId : propertyGroup.conditionPropertyId(),
 						propertyGroup.conditionOneOf().length == 0 ? propertyValues : Arrays.stream(propertyGroup.conditionOneOf()).collect(Collectors.toSet()),
@@ -220,7 +220,7 @@ public class TemplateGenerator {
 										.id(grpId)
 										.label(propertyDefinition.choiceGroupNames()[i])
 										.tooltip(propertyDefinition.choiceGroupTooltips().length == propertyDefinition.choiceValues().length && !propertyDefinition.choiceGroupTooltips()[i].isBlank() ? propertyDefinition.choiceGroupTooltips()[i] : null)
-										.openByDefault(propertyDefinition.choiceGroupOpenByDefaults().length == propertyDefinition.choiceValues().length ? propertyDefinition.choiceGroupOpenByDefaults()[i] : true)
+										.openByDefault(propertyDefinition.choiceGroupOpenByDefaults().length == propertyDefinition.choiceValues().length && !propertyDefinition.choiceGroupOpenByDefaults()[i] ? false : null)
 										.build());
 							} else if (propertyDefinition.choiceGroupIds().length == propertyDefinition.choiceValues().length && !propertyDefinition.choiceGroupIds()[i].isBlank()) {
 								grpId = propertyDefinition.choiceGroupIds()[i];
