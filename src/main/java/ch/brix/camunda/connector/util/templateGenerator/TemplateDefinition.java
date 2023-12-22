@@ -51,11 +51,19 @@ public @interface TemplateDefinition {
     /**
      * @return the group ids in the same order as the group labels
      */
-    String[] groupIds();
+    String[] groupIds() default {};
     /**
      * @return the group labels in the same order as the group ids
      */
-    String[] groupLabels();
+    String[] groupLabels() default {};
+    /**
+     * @return booleans to indicate whether the corresponding group is opened by default or not
+     */
+    boolean[] groupOpenByDefaults() default {};
+    /**
+     * @return tooltips for the groups in the same order as group ids
+     */
+    String[] groupTooltips() default {};
     /**
      * @return task definition type (is added automatically as hidden property)
      */
@@ -68,6 +76,8 @@ public @interface TemplateDefinition {
      */
     boolean addDefaultOutputMapping() default true;
 
+    String defaultOutputMappingTooltip() default "";
+
     String defaultOutputMappingResultExpressionDescription() default "Expression to handle the result. Details in the <a href=\"https://docs.camunda.io/docs/components/connectors/use-connectors/\" target=\"_blank\">documentation</a>.";
 
     /**
@@ -77,6 +87,8 @@ public @interface TemplateDefinition {
      * @return true to add the default error handling automatically
      */
     boolean addDefaultErrorHandling() default true;
+
+    String defaultErrorHandlingTooltip() default "";
 
     String defaultErrorHandlingExpressionDescription() default "Expression to handle errors. Details in the <a href=\"https://docs.camunda.io/docs/components/connectors/use-connectors/\" target=\"_blank\">documentation</a>.";
 }

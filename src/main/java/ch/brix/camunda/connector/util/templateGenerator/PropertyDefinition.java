@@ -33,9 +33,14 @@ public @interface PropertyDefinition {
     String label();
 
     /**
-     * @return An optional description of the property
+     * @return An optional description for the property
      */
     String description() default "";
+    /**
+     * @return An optional tooltip for the property
+     */
+    String tooltip() default "";
+
     String groupId() default "";
 
     /**
@@ -97,6 +102,15 @@ public @interface PropertyDefinition {
      */
     String[] choiceGroupIds() default {};
     /**
+     * @return the tooltips for the choice groups (only respected if choiceGroupNames is set)
+     */
+    String[] choiceGroupTooltips() default {};
+    /**
+     * @return whether the corresponding group is open by default (only respected if choiceGroupNames is set)
+     */
+    boolean[] choiceGroupOpenByDefaults() default {};
+
+    /**
      * Instead of using the other choice* properties everything can be set using an enum (recommended).
      * @return the enum with the choices:<ul>
      *     <li>choiceValue: taken from the @SerializedName annotation and if not present the enum constant name is used as value (so deserialization should work without problems)
@@ -117,6 +131,11 @@ public @interface PropertyDefinition {
     String[] conditionOneOf() default {};
     // This makes absolutely no sense, there is no multi-value property type like dropdown with multi-selection.
     // String[] conditionAllOf() default {};
+
+    /**
+     * @return true to display the property if the property given in the condition is active, if true conditionOneOf and conditionEquals are ignored
+     */
+    boolean conditionIsActive() default false;
 
     enum Null {}
 }

@@ -556,6 +556,9 @@ We use Spring Boot 3+ (Spring 6+), jakarta validation and a custom connector run
 
 ## 1.4
 
+- Support new `tooltip` feature for properties and groups: on `@PropertyDefinition` for properties (tooltips for groups for choices can also be defined there) and for groups in general on `@TemplateDefinition` or on `@PropertyGroup`.
+- Support new `openByDefault` feature for groups
+- Support new `isActive` feature for conditions
 - Added `@PropertyGroup` annotation to be able to split classes by groups (or anything, groups is just intended and most convenient):
   - Fields annotated with that property have to have a setter starting with "set" (will be found automatically by the `Deserializer`)
   - All properties in that field's class are loaded
@@ -563,4 +566,5 @@ We use Spring Boot 3+ (Spring 6+), jakarta validation and a custom connector run
   - propertyIds still have to be globally unique
 - If a value comes from the field name, then it can be overridden by @SerializedName, so the precedence is explicitly specified value, value from @Serialized name, field name. This guarantees correct deserialization.
 - Added `defaultOutputMappingResultExpressionDescription` and `defaultErrorHandlingExpressionDescription` to `@TemplateDefinition` to be able to add custom descriptions to those standard fields (without having to create the whole groups manually).
+- Added `defaultOutputMappingTooltip` and `defaultErrorHandlingTooltip`
 - Set Java version to 11 we don't really need 17 for just the template generator

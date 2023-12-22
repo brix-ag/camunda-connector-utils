@@ -14,6 +14,7 @@ public class Property {
     private String id;
     private String label;
     private String description;
+    private String tooltip;
     @SerializedName("group") private String groupId; // to distinguish from group name
     private TYPE type;
     private FEEL feel;

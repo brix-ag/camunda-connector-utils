@@ -16,4 +16,5 @@ public class Condition {
     private String equals;
     private Collection<String> oneOf;
     private Collection<String> allOf;
+    private boolean isActive;
 }

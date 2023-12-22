@@ -52,11 +52,16 @@ public class TemplateGenerator {
 				.value(templateDefinition.elementType())
 				.build());
 		Set<Group> groups = new LinkedHashSet<>();
-		for (int i = 0; i < templateDefinition.groupIds().length; i++)
-			groups.add(Group.builder()
-					.id(templateDefinition.groupIds()[i])
-					.label(templateDefinition.groupLabels()[i])
-					.build());
+		for (int i = 0; i < templateDefinition.groupIds().length; i++) {
+			Group.GroupBuilder builder = Group.builder().id(templateDefinition.groupIds()[i]);
+			if (templateDefinition.groupLabels().length == templateDefinition.groupIds().length)
+				builder.label(templateDefinition.groupLabels()[i]);
+			if (templateDefinition.groupTooltips().length == templateDefinition.groupIds().length)
+				builder.tooltip(templateDefinition.groupTooltips()[i]);
+			if (templateDefinition.groupOpenByDefaults().length == templateDefinition.groupIds().length)
+				builder.openByDefault(templateDefinition.groupOpenByDefaults()[i]);
+			groups.add(builder.build());
+		}
 		template.setGroups(groups);
 		Set<Property> properties = new LinkedHashSet<>();
 		Property p = new Property();
@@ -64,7 +69,7 @@ public class TemplateGenerator {
 		p.setValue(templateDefinition.id());
 		p.setBinding(Binding.builder().type(BINDING_TYPE.ZEEBE_TASK_DEFINITION_TYPE).build());
 		properties.add(p);
-		properties.addAll(getProperties(clazz, template, null, null, null));
+		properties.addAll(getProperties(clazz, template, null, null, null, false));
 		template.setProperties(properties);
 		addSpecialProperties(templateDefinition, properties);
 		// moved that down to add standard groups last
@@ -72,11 +77,13 @@ public class TemplateGenerator {
 			template.getGroups().add(Group.builder()
 					.id("output")
 					.label("Output Mapping")
+					.tooltip(templateDefinition.defaultOutputMappingTooltip())
 					.build());
 		if (templateDefinition.addDefaultErrorHandling())
 			template.getGroups().add(Group.builder()
 					.id("errors")
 					.label("Error Handling")
+					.tooltip(templateDefinition.defaultErrorHandlingTooltip())
 					.build());
 		if (processorClass != null) {
 			TemplateProcessor tp = (TemplateProcessor) processorClass.getConstructor().newInstance();
@@ -134,7 +141,7 @@ public class TemplateGenerator {
 					.build());
 	}
 
-	private static Set<Property> getProperties(Class<?> propertyClass, Template template, String propertyId, Set<String> propertyValues, String groupId) {
+	private static Set<Property> getProperties(Class<?> propertyClass, Template template, String propertyId, Set<String> propertyValues, String groupId, boolean isActive) {
 		Set<Property> deferredProperties = new LinkedHashSet<>();
 		Set<Property> properties = new LinkedHashSet<>();
 		Set<Class<?>> processedClasses = new HashSet<>();
@@ -143,11 +150,15 @@ public class TemplateGenerator {
 			if (propertyGroup != null && !processedClasses.contains(field.getType())) {
 				String grpId = propertyGroup.groupId().isEmpty() ? groupId : propertyGroup.groupId();
 				if (!propertyGroup.groupName().isEmpty())
-					template.getGroups().add(Group.builder().id(grpId).label(propertyGroup.groupName()).build());
+					template.getGroups().add(Group.builder().id(grpId)
+							.label(propertyGroup.groupName())
+							.tooltip(propertyGroup.groupTooltip().isBlank() ? null : propertyGroup.groupTooltip())
+							.openByDefault(propertyGroup.openByDefault()).build());
 				deferredProperties.addAll(getProperties(field.getType(), template,
 						propertyGroup.conditionPropertyId().isEmpty() ? propertyId : propertyGroup.conditionPropertyId(),
 						propertyGroup.conditionOneOf().length == 0 ? propertyValues : Arrays.stream(propertyGroup.conditionOneOf()).collect(Collectors.toSet()),
-						grpId));
+						grpId,
+						propertyGroup.conditionIsActive()));
 			}
 			PropertyDefinition propertyDefinition = field.getDeclaredAnnotation(PropertyDefinition.class);
 			SerializedName serializedName = field.getDeclaredAnnotation(SerializedName.class);
@@ -163,6 +174,8 @@ public class TemplateGenerator {
 			}
 			if (!propertyDefinition.description().isBlank())
 				property.setDescription(propertyDefinition.description());
+			if (!propertyDefinition.tooltip().isBlank())
+				property.setTooltip(propertyDefinition.tooltip());
 			if (!propertyDefinition.groupId().isBlank())
 				property.setGroupId(propertyDefinition.groupId());
 			else if (groupId != null)
@@ -203,7 +216,12 @@ public class TemplateGenerator {
 							String grpId = null;
 							if (propertyDefinition.choiceGroupNames().length == propertyDefinition.choiceValues().length && !propertyDefinition.choiceGroupNames()[i].isBlank()) {
 								grpId = propertyDefinition.choiceGroupIds().length == propertyDefinition.choiceValues().length && !propertyDefinition.choiceGroupIds()[i].isBlank() ? propertyDefinition.choiceGroupIds()[i] : propertyDefinition.choiceValues()[i];
-								template.getGroups().add(Group.builder().id(grpId).label(propertyDefinition.choiceGroupNames()[i]).build());
+								template.getGroups().add(Group.builder()
+										.id(grpId)
+										.label(propertyDefinition.choiceGroupNames()[i])
+										.tooltip(propertyDefinition.choiceGroupTooltips().length == propertyDefinition.choiceValues().length && !propertyDefinition.choiceGroupTooltips()[i].isBlank() ? propertyDefinition.choiceGroupTooltips()[i] : null)
+										.openByDefault(propertyDefinition.choiceGroupOpenByDefaults().length == propertyDefinition.choiceValues().length ? propertyDefinition.choiceGroupOpenByDefaults()[i] : true)
+										.build());
 							} else if (propertyDefinition.choiceGroupIds().length == propertyDefinition.choiceValues().length && !propertyDefinition.choiceGroupIds()[i].isBlank()) {
 								grpId = propertyDefinition.choiceGroupIds()[i];
 							}
@@ -213,7 +231,7 @@ public class TemplateGenerator {
 									if (propertyDefinition.choiceClasses()[i].equals(propertyDefinition.choiceClasses()[j]))
 										pVals.add(propertyDefinition.choiceValues()[j]);
 								}
-								deferredProperties.addAll(getProperties(propertyDefinition.choiceClasses()[i], template, property.getId(), pVals, grpId));
+								deferredProperties.addAll(getProperties(propertyDefinition.choiceClasses()[i], template, property.getId(), pVals, grpId, false));
 								processedClasses.add(propertyDefinition.choiceClasses()[i]);
 							}
 						}
@@ -268,7 +286,7 @@ public class TemplateGenerator {
 						if (choiceClass == null)
 							continue;
 						if (!processedClasses.contains(choiceClass)) {
-							deferredProperties.addAll(getProperties(choiceClass, template, property.getId(), optionsPerClass.get(choiceClass), getChoiceGroupId == null ? null : cgis.next()));
+							deferredProperties.addAll(getProperties(choiceClass, template, property.getId(), optionsPerClass.get(choiceClass), getChoiceGroupId == null ? null : cgis.next(), false));
 							processedClasses.add(choiceClass);
 						}
 					}
@@ -280,17 +298,25 @@ public class TemplateGenerator {
 			if (!propertyDefinition.conditionPropertyId().isBlank()) {
 				Condition condition = new Condition();
 				condition.setProperty(propertyDefinition.conditionPropertyId());
-				if (!propertyDefinition.conditionEquals().isBlank())
-					condition.setEquals(propertyDefinition.conditionEquals());
-				if (propertyDefinition.conditionOneOf().length > 0)
-					condition.setOneOf(new LinkedHashSet<>(Arrays.asList(propertyDefinition.conditionOneOf())));
-				property.setCondition(condition);
-			} else if (propertyId != null && propertyValues != null && !propertyValues.isEmpty()) {
+				if (propertyDefinition.conditionIsActive()) {
+					condition.setActive(true);
+				} else {
+					if (!propertyDefinition.conditionEquals().isBlank())
+						condition.setEquals(propertyDefinition.conditionEquals());
+					if (propertyDefinition.conditionOneOf().length > 0)
+						condition.setOneOf(new LinkedHashSet<>(Arrays.asList(propertyDefinition.conditionOneOf())));
+					property.setCondition(condition);
+				}
+			} else if (propertyId != null && ((propertyValues != null && !propertyValues.isEmpty()) || isActive)) {
 				Condition.ConditionBuilder condition = Condition.builder().property(propertyId);
-				if (propertyValues.size() == 1)
-					property.setCondition(condition.equals(propertyValues.iterator().next()).build());
-				else
-					property.setCondition(condition.oneOf(propertyValues).build());
+				if (isActive) {
+					property.setCondition(condition.isActive(true).build());
+				} else {
+					if (propertyValues.size() == 1)
+						property.setCondition(condition.equals(propertyValues.iterator().next()).build());
+					else
+						property.setCondition(condition.oneOf(propertyValues).build());
+				}
 			}
 			properties.add(property);
 		}
