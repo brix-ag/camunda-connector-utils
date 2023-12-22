@@ -41,7 +41,7 @@ Since v1.1 it is possible to group the request. This improved version is shown b
 
 Choices were improved with v1.3, a [state-of-the-art implementation](#state-of-the-art-example) using this new `choiceEnum` feature can be found below.
 
-With the introduction of the `@PropertyGroup` annotation in v1.4 it is possible to split the request class by groups (or anything) and not just by choices.
+With the introduction of the `@PropertyGroup` annotation in v1.4 it is possible to split the request class by groups (or anything) and not just by choices. The [mail thymeleaf connector](https://github.com/brix-ag/mail-thymeleaf-connector) uses all those features.
 
 ## Form
 
