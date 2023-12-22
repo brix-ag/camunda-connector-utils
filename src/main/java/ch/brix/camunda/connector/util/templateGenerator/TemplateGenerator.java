@@ -299,7 +299,7 @@ public class TemplateGenerator {
 				Condition condition = new Condition();
 				condition.setProperty(propertyDefinition.conditionPropertyId());
 				if (propertyDefinition.conditionIsActive()) {
-					condition.setActive(true);
+					condition.setIsActive(true);
 				} else {
 					if (!propertyDefinition.conditionEquals().isBlank())
 						condition.setEquals(propertyDefinition.conditionEquals());
