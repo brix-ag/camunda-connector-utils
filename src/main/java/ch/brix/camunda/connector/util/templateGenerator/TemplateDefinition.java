@@ -70,8 +70,8 @@ public @interface TemplateDefinition {
     BINDING_TYPE taskDefinitionType() default BINDING_TYPE.ZEEBE_TASK_DEFINITION_TYPE;
     /**
      * Adds standard "Result Variable" and "Result Expression" fields.
-     * If there is at least one group defined the group "Output Mapping" (ID: "output") is created if it doesn't exist
-     * and the fields are added to this group, otherwise they are added to no group.
+     * The group "Output Mapping" (ID: "output") is created automatically
+     * and the fields are added to this group.
      * @return true to add the default output mapping automatically
      */
     boolean addDefaultOutputMapping() default true;
@@ -82,8 +82,8 @@ public @interface TemplateDefinition {
 
     /**
      * Adds standard "Error Expression" field.
-     * If there is at least one group defined the group "Error Handling" (ID: "errors") is created if it doesn't exist
-     * and the field is added to this group, otherwise it is added to no group.
+     * The group "Error Handling" (ID: "errors") is created
+     * and the field is added to this group.
      * @return true to add the default error handling automatically
      */
     boolean addDefaultErrorHandling() default true;
