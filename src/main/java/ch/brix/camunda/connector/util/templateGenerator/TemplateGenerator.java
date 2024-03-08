@@ -148,7 +148,7 @@ public class TemplateGenerator {
 		for (Field field : propertyClass.getDeclaredFields()) {
 			PropertyGroup propertyGroup = field.getDeclaredAnnotation(PropertyGroup.class);
 			if (propertyGroup != null && !processedClasses.contains(field.getType())) {
-				String grpId = propertyGroup.groupId().isEmpty() ? groupId : propertyGroup.groupId();
+				String grpId = propertyGroup.groupId().isEmpty() ? (groupId != null ? groupId : field.getType().getSimpleName()) : propertyGroup.groupId();
 				if (!propertyGroup.groupName().isEmpty())
 					template.getGroups().add(Group.builder().id(grpId)
 							.label(propertyGroup.groupName())
