@@ -375,7 +375,7 @@ Additionally, it makes use of the `choiceEnum` property to specify choices. The 
         groupIds =    {"action", "data"},
         groupLabels = {"Action", "Data"}
 )
-public class StateOfTheArtRequest {
+public class ChoiceEnumRequest {
 
     @PropertyDefinition(
             label = "Action",
