@@ -1,4 +1,4 @@
-package com.acme.camunda.connector.acmeSessionConnector.stateOfTheArt;
+package com.acme.camunda.connector.acmeSessionConnector.choiceEnum;
 
 import ch.brix.camunda.connector.util.templateGenerator.PropertyDefinition;
 import ch.brix.camunda.connector.util.templateGenerator.TemplateDefinition;
@@ -15,7 +15,7 @@ import lombok.Data;
         groupIds =    {"action", "data"},
         groupLabels = {"Action", "Data"}
 )
-public class StateOfTheArtRequest {
+public class ChoiceEnumRequest {
 
     @PropertyDefinition(
             label = "Action",

@@ -1,4 +1,4 @@
-package com.acme.camunda.connector.acmeSessionConnector.stateOfTheArt;
+package com.acme.camunda.connector.acmeSessionConnector.choiceEnum;
 
 import com.acme.camunda.connector.acmeSessionConnector.grouped.LoginGroup;
 import com.acme.camunda.connector.acmeSessionConnector.grouped.LogoutGroup;

@@ -8,7 +8,7 @@ Our main goal is to make it easier to implement and maintain connectors for *Jav
 
 # Benefits
 
-- Everything is managed neatly in one class or in several classes grouped by action/function
+- Everything is managed neatly in one class or partitioned (by group or action) into several classes which makes navigation easier
 - Prevents typos and eases the development (no back and forth between request class and template file)
 - Avoids common pitfalls by adding required properties and defaults
 - A lot less typing because of the defaults and the settings are represented in a more condensed form
@@ -28,20 +28,24 @@ This means less time spent implementing, debugging and maintaining the connector
 - Possibility to specify property classes for dropdown values, by default those properties are only visible if the corresponding choice is selected
 - Group names can be provided for the choice classes, so the group is set automatically too
 - Provides an easily extendable collection of classes to deserialize delimited collections
+- Request can also be split by group with the `@PropertyGroup` annotation
+- Provides a deserializer that can handle all the partitions automatically
 
 # How to Use It?
 
 All you have to do is annotate the request class with `@TemplateDefinition` and its fields with `@PropertyDefinition`. Set the required properties for the annotations and the optional ones if needed. Anything that might be confusing should be annotated with javadoc. Optionally add a post processor (only required for very special cases). Then either manually execute the template generator or integrate with maven (see below, also for the arguments).
 
+The [Mail Thymeleaf Connector](https://github.com/brix-ag/mail-thymeleaf-connector) uses partitioning by group and many other features and can be used as an example.
+
 # Simple Example
 
 A connector that lets you log in or log out. The ACME Session Connector returns a token on log in which is required to log out a user.
 
-Since v1.1 it is possible to group the request. This improved version is shown below.
+Since v1.1 it is possible to group the request by choice. This improved version is shown below.
 
-Choices were improved with v1.3, a [state-of-the-art implementation](#state-of-the-art-example) using this new `choiceEnum` feature can be found below.
+Choices were improved with v1.3, the third [example](#choice-enum-example) is using this new `choiceEnum` feature and can be found below.
 
-With the introduction of the `@PropertyGroup` annotation in v1.4 it is possible to split the request class by groups (or anything) and not just by choices. The [mail thymeleaf connector](https://github.com/brix-ag/mail-thymeleaf-connector) uses all those features.
+All examples are implementing the same simple connector except for minor differences because some things are done manually in one example and automatically in others which can lead to different values but the functionality is still the same.
 
 ## Form
 
@@ -82,13 +86,11 @@ public class Request {
 
     @PropertyDefinition(
             label = "Password",
-            description = DefaultTexts.SECRETS_SUPPORTED,
             groupId = "data",
             notEmpty = true,
             conditionPropertyId = "action",
             conditionEquals = "login"
     )
-    //@Secret (dependency missing here, but all fields that support secrets have to be marked with this annotation)
     private String password;
 
     @PropertyDefinition(
@@ -196,7 +198,6 @@ public class Request {
     {
       "id": "password",
       "label": "Password",
-      "description": "\u003ca href\u003d\"https://docs.camunda.io/docs/components/connectors/use-connectors/#using-secrets\" target\u003d\"_blank\"\u003eSecrets\u003c/a\u003e supported.",
       "group": "data",
       "type": "String",
       "feel": "optional",
@@ -285,7 +286,7 @@ The advantages compared to the other version:
 To deserialize a request we can use `Deserializer.deserialize(json, gson, clazz)`, where ...
 
 - `json` is the JSON string of the request
-- `gson` is our custom `Gson` instance, this allows us to use custom deserializers as before without having to change anything (with the exception that it has to ignore unknown properties and cannot throw an exception)
+- `gson` is our custom `Gson` instance, this allows us to use custom deserializers as before without having to change anything (`GsonProvider` provides default `Gson` and `GsonBuilder` to register custom types, usually we can just use `GsonProvider.getDefaultGson()`)
 - `clazz` is the template definition class
 
 ```java
@@ -359,10 +360,10 @@ public class LogoutGroup {
 }
 ```
 
-# State-of-the-Art Example
+# Choice Enum Example
 
 This is the same as the [grouped example](#grouped-example) except that the groups are defined in the `TemplateDefinition` in the desired order and then referred by their id and not created automatically from the `choiceGroupNames` (which is only recommended for very simple connectors).
-Additionally, it makes use of the `choiceEnum` property to specify choices.
+Additionally, it makes use of the `choiceEnum` property to specify choices. The visibility is handled automatically (shown if corresponding actino is selected).
 
 ```java
 @Data
@@ -522,10 +523,6 @@ We are [brix IT solutions](https://www.brix.ch/), a Swiss company known for DAM,
 
 We are new to Open Source. If there is anything that can be improved let us know, also if you would like to contribute to this project. In the future we would like to release other connector utilities.
 
-## What's Our Setup?
-
-We use Spring Boot 3+ (Spring 6+), jakarta validation and a custom connector runtime with complete Camunda setup which deploys processes and decisions and includes connectors through dependencies (one such setup per customer per stage). Thanks to docker compose it can be built and updated very easily.
-
 # Release Notes
 
 ## 1.0
@@ -568,3 +565,4 @@ We use Spring Boot 3+ (Spring 6+), jakarta validation and a custom connector run
 - Added `defaultOutputMappingResultExpressionDescription` and `defaultErrorHandlingExpressionDescription` to `@TemplateDefinition` to be able to add custom descriptions to those standard fields (without having to create the whole groups manually).
 - Added `defaultOutputMappingTooltip` and `defaultErrorHandlingTooltip`
 - Set Java version to 11 we don't really need 17 for just the template generator
+- Added `GsonProvider` which provides `Gson` with correct exclusion strategy (allows groups to have the same id as properties, otherwise there will be conflicts)

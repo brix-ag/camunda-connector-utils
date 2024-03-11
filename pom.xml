@@ -73,7 +73,7 @@
           <mainClass>ch.brix.camunda.connector.util.templateGenerator.TemplateGenerator</mainClass>
           <arguments>
             <!-- Request class -->
-            <argument>com.acme.camunda.connector.acmeSessionConnector.stateOfTheArt.StateOfTheArtRequest</argument>
+            <argument>com.acme.camunda.connector.acmeSessionConnector.choiceEnum.ChoiceEnumRequest</argument>
             <!-- Template location (relative if possible) -->
             <argument>element-templates/acme-session-connector.json</argument>
             <!-- PostProcessor class (optional) -->
