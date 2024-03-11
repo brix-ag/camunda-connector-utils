@@ -363,7 +363,7 @@ public class LogoutGroup {
 # Choice Enum Example
 
 This is the same as the [grouped example](#grouped-example) except that the groups are defined in the `TemplateDefinition` in the desired order and then referred by their id and not created automatically from the `choiceGroupNames` (which is only recommended for very simple connectors).
-Additionally, it makes use of the `choiceEnum` property to specify choices. The visibility is handled automatically (shown if corresponding actino is selected).
+Additionally, it makes use of the `choiceEnum` property to specify choices. The visibility is handled automatically (shown if corresponding action is selected).
 
 ```java
 @Data
